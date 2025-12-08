@@ -500,68 +500,9 @@
   </div>
 
   <script>
-    // بيانات المشاريع الافتراضية (في التطبيق الحقيقي ستأتي من قاعدة البيانات)
-    const projects = [
-      {
-        id: 1,
-        name: "تطوير متجر إلكتروني",
-        owner: "أحمد محمد",
-        industry: "التجارة الإلكترونية",
-        revenue: 5000,
-        employees: 3,
-        status: "active",
-        startDate: "2023-10-01",
-        description: "تطوير متجر إلكتروني متكامل لبيع المنتجات التقنية"
-      },
-      {
-        id: 2,
-        name: "تحليل السوق",
-        owner: "سارة الخالد",
-        industry: "الاستشارات",
-        revenue: 2500,
-        employees: 2,
-        status: "completed",
-        startDate: "2023-09-15",
-        description: "تحليل السوق المحلي لمنتجات العناية بالبشرة"
-      },
-      {
-        id: 3,
-        name: "حملة تسويقية",
-        owner: "خالد العلي",
-        industry: "التسويق",
-        revenue: 4200,
-        employees: 4,
-        status: "active",
-        startDate: "2023-10-10",
-        description: "حملة تسويقية شاملة لمنتج جديد في السوق"
-      },
-      {
-        id: 4,
-        name: "دراسة الجدوى",
-        owner: "فاطمة أحمد",
-        industry: "الاستشارات",
-        revenue: 1800,
-        employees: 1,
-        status: "pending",
-        startDate: "2023-11-01",
-        description: "دراسة جدوى لمشروع مطعم في المنطقة الشمالية"
-      },
-      {
-        id: 5,
-        name: "تطبيق جوال",
-        owner: "محمد السعد",
-        industry: "التقنية",
-        revenue: 7500,
-        employees: 5,
-        status: "active",
-        startDate: "2023-08-20",
-        description: "تطوير تطبيق جوال لخدمة توصيل الطعام"
-      }
-    ];
-
     // عرض المشاريع عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', function() {
-      displayProjects(projects);
+
       
       // إضافة مستمع حدث للنموذج
       document.getElementById('searchForm').addEventListener('submit', function(e) {
@@ -698,5 +639,51 @@
       }
     }
   </script>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyClQwi-qkw0gm-h4W-1Ml_GmVurHmoLNxM",
+  authDomain: "nabd-project.firebaseapp.com",
+  projectId: "nabd-project",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// مصفوفة المشاريع الحقيقية
+let projects = [];
+
+// تحميل المشاريع من Firestore
+async function loadProjects() {
+  const querySnapshot = await getDocs(collection(db, "projects"));
+
+  projects = []; // تفريغ القديم
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    projects.push({
+      id: doc.id,
+      name: data.projectName || "بدون اسم",
+      owner: data.fullName || "غير معروف",
+      industry: data.businessType || "غير محدد",
+      revenue: data.monthlyRevenue || 0,
+      employees: data.employeesCount || 0,
+      status: "active", // حالة افتراضية (تقدر تعملها من Firestore لاحقاً)
+      startDate: "2024-01-01",
+      description: data.projectDescription || "",
+    });
+  });
+
+  // عرض المشاريع في الأدمن
+  displayProjects(projects);
+}
+
+document.addEventListener("DOMContentLoaded", loadProjects);
+</script>
+
 </body>
+
 </html>
