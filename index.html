@@ -573,324 +573,281 @@
 
     </div>
 	
+<script>
+    // جلب الطلبات من LocalStorage
+    function getRequestsFromLocalStorage() {
+        const stored = localStorage.getItem("businessRequests");
+        return stored ? JSON.parse(stored) : [];
+    }
 
-    <script>
-        
-		function getRequestsFromLocalStorage() {
-		    // أسماء الحقول كما هي في الفورم (name="")
-		    const request = {
-		        id: 1,
-		        projectName: localStorage.getItem("projectName") || "—",
-		        businessType: localStorage.getItem("businessType") || "—",
-		        userName: localStorage.getItem("ownerName") || "—",
-		        userEmail: localStorage.getItem("email") || "—",
-		        date: new Date().toISOString().split("T")[0],
-		        status: "pending",
-		        revenue: localStorage.getItem("monthlyRevenue") || "0",
-		        analysisTime: "في الانتظار",
-		        location: localStorage.getItem("location") || "—",
-		        age: localStorage.getItem("businessAge") || "—",
-		        customers: localStorage.getItem("customers") || "—",
-		        employees: localStorage.getItem("employees") || "—"
-		    };
-		
-		    // إذا ما في بيانات محفوظة لا تعرض شيء
-		    if (!localStorage.length) return [];
-		
-		    return [request];
-		}
-		
-		const sampleData = getRequestsFromLocalStorage();
+    // حفظ الطلبات في LocalStorage
+    function saveRequestsToLocalStorage(data) {
+        localStorage.setItem("businessRequests", JSON.stringify(data));
+    }
 
+    // إضافة طلب جديد
+    function addNewRequest(request) {
+        request.id = sampleData.length ? Math.max(...sampleData.map(r => r.id)) + 1 : 1;
+        sampleData.push(request);
+        saveRequestsToLocalStorage(sampleData);
+        filteredData = [...sampleData];
+        renderTable();
+        setupPagination();
+        updateStats();
+    }
 
-        // متغيرات عامة
-        let currentPage = 1;
-        let itemsPerPage = 25;
-        let filteredData = [...sampleData];
+    // المتغيرات العامة
+    let sampleData = getRequestsFromLocalStorage();
+    let filteredData = [...sampleData];
+    let currentPage = 1;
+    let itemsPerPage = 25;
 
-        // تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
-            renderTable();
-            setupPagination();
-            
-            // ربط أحداث البحث
-            document.getElementById('searchInput').addEventListener('input', function() {
-                applyFilters();
-            });
-            
-            document.getElementById('rowsPerPage').addEventListener('change', function() {
-                itemsPerPage = parseInt(this.value);
-                currentPage = 1;
-                renderTable();
-                setupPagination();
-            });
+    // عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        // إضافة الطلب الجديد تلقائيًا
+        addNewRequest({
+            projectName: "مشروع جديد",
+            businessType: "تجارة",
+            userName: "أحمد",
+            userEmail: "ahmed@example.com",
+            date: new Date().toISOString(),
+            status: "pending",
+            revenue: "5000",
+            analysisTime: "في الانتظار",
+            location: "عمان",
+            age: "3 سنوات",
+            customers: "200",
+            employees: "15"
         });
 
-        // تحديث الإحصائيات
-        function updateStats() {
-            const total = sampleData.length;
-            const pending = sampleData.filter(item => item.status === 'pending').length;
-            const completed = sampleData.filter(item => item.status === 'completed').length;
-            const error = sampleData.filter(item => item.status === 'error').length;
-            const processing = sampleData.filter(item => item.status === 'processing').length;
-            
-            document.getElementById('totalRequests').textContent = total;
-            document.getElementById('pendingRequests').textContent = pending + processing;
-            document.getElementById('completedRequests').textContent = completed;
-            document.getElementById('errorRequests').textContent = error;
-        }
+        updateStats();
+        renderTable();
+        setupPagination();
 
-        // تطبيق الفلاتر
-        function applyFilters() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo = document.getElementById('dateTo').value;
-            
-            // تصفية البيانات
-            filteredData = sampleData.filter(item => {
-                // بحث نصي
-                const matchesSearch = !searchText || 
-                    item.projectName.toLowerCase().includes(searchText) ||
-                    item.userName.toLowerCase().includes(searchText) ||
-                    item.userEmail.toLowerCase().includes(searchText) ||
-                    item.businessType.toLowerCase().includes(searchText);
-                
-                // تصفية حسب الحالة
-                const matchesStatus = !statusFilter || item.status === statusFilter;
-                
-                // تصفية حسب النوع
-                const matchesType = !typeFilter || item.businessType.includes(typeFilter);
-                
-                // تصفية حسب التاريخ
-                const itemDate = new Date(item.date);
-                const fromDate = dateFrom ? new Date(dateFrom) : null;
-                const toDate = dateTo ? new Date(dateTo) : null;
-                
-                let matchesDate = true;
-                if (fromDate && itemDate < fromDate) matchesDate = false;
-                if (toDate && itemDate > toDate) matchesDate = false;
-                
-                return matchesSearch && matchesStatus && matchesType && matchesDate;
-            });
-            
+        // أحداث البحث والفلاتر
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('rowsPerPage').addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
             currentPage = 1;
             renderTable();
             setupPagination();
-        }
+        });
+    });
 
-        // إعادة تعيين الفلاتر
-        function resetFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('typeFilter').value = '';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-            
-            filteredData = [...sampleData];
-            currentPage = 1;
-            renderTable();
-            setupPagination();
-        }
+    // تحديث الإحصائيات
+    function updateStats() {
+        const total = sampleData.length;
+        const pending = sampleData.filter(item => item.status === 'pending').length;
+        const completed = sampleData.filter(item => item.status === 'completed').length;
+        const error = sampleData.filter(item => item.status === 'error').length;
+        const processing = sampleData.filter(item => item.status === 'processing').length;
 
-        // عرض الجدول
-        function renderTable() {
-            const tableBody = document.getElementById('requestsTable');
-            tableBody.innerHTML = '';
-            
-            // حساب بيانات الصفحة الحالية
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = filteredData.slice(startIndex, endIndex);
-            
-            if (pageData.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #777;">
-                            <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
-                            <h3 style="margin-bottom: 10px;">لا توجد نتائج</h3>
-                            <p>لم يتم العثور على طلبات مطابقة لمعايير البحث</p>
-                            <button class="btn-primary" onclick="resetFilters()" style="margin-top: 15px;">
-                                <i class="fas fa-redo"></i> عرض جميع الطلبات
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            // إضافة الصفوف
-            pageData.forEach(item => {
-                const statusText = getStatusText(item.status);
-                const statusClass = getStatusClass(item.status);
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${item.id}</strong></td>
-                    <td>
-                        <div><strong>${item.projectName}</strong></div>
-                        <small style="color: #777; font-size: 12px;">${item.location}</small>
+        document.getElementById('totalRequests').textContent = total;
+        document.getElementById('pendingRequests').textContent = pending + processing;
+        document.getElementById('completedRequests').textContent = completed;
+        document.getElementById('errorRequests').textContent = error;
+    }
+
+    // تطبيق الفلاتر
+    function applyFilters() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+
+        filteredData = sampleData.filter(item => {
+            const matchesSearch = !searchText ||
+                item.projectName.toLowerCase().includes(searchText) ||
+                item.userName.toLowerCase().includes(searchText) ||
+                item.userEmail.toLowerCase().includes(searchText) ||
+                item.businessType.toLowerCase().includes(searchText);
+
+            const matchesStatus = !statusFilter || item.status === statusFilter;
+            const matchesType = !typeFilter || item.businessType.includes(typeFilter);
+
+            const itemDate = new Date(item.date);
+            const fromDate = dateFrom ? new Date(dateFrom) : null;
+            const toDate = dateTo ? new Date(dateTo) : null;
+
+            let matchesDate = true;
+            if (fromDate && itemDate < fromDate) matchesDate = false;
+            if (toDate && itemDate > toDate) matchesDate = false;
+
+            return matchesSearch && matchesStatus && matchesType && matchesDate;
+        });
+
+        currentPage = 1;
+        renderTable();
+        setupPagination();
+    }
+
+    // إعادة تعيين الفلاتر
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('typeFilter').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+
+        filteredData = [...sampleData];
+        currentPage = 1;
+        renderTable();
+        setupPagination();
+    }
+
+    // عرض الجدول
+    function renderTable() {
+        const tableBody = document.getElementById('requestsTable');
+        tableBody.innerHTML = '';
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageData = filteredData.slice(startIndex, endIndex);
+
+        if (!pageData.length) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #777;">
+                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                        <h3 style="margin-bottom: 10px;">لا توجد نتائج</h3>
+                        <p>لم يتم العثور على طلبات مطابقة لمعايير البحث</p>
+                        <button class="btn-primary" onclick="resetFilters()" style="margin-top: 15px;">
+                            <i class="fas fa-redo"></i> عرض جميع الطلبات
+                        </button>
                     </td>
-                    <td>${item.businessType}</td>
-                    <td>
-                        <div>${item.userName}</div>
-                        <small style="color: #777; font-size: 12px;">${item.userEmail}</small>
-                    </td>
-                    <td>${formatDate(item.date)}</td>
-                    <td>
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        <div style="font-size: 12px; color: #777; margin-top: 5px;">${item.analysisTime}</div>
-                    </td>
-                    <td><strong>${item.revenue} د.أ</strong></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn btn-view" onclick="viewDetails(${item.id})" title="عرض التفاصيل">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn btn-download" onclick="downloadReport(${item.id})" title="تحميل التقرير">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button class="action-btn btn-delete" onclick="deleteRequest(${item.id})" title="حذف الطلب">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
+                </tr>`;
+            return;
         }
 
-        // إعداد الترقيم
-        function setupPagination() {
-            const pagination = document.getElementById('pagination');
-            pagination.innerHTML = '';
-            
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            
-            if (totalPages <= 1) return;
-            
-            // زر السابق
-            const prevButton = document.createElement('button');
-            prevButton.innerHTML = '<i class="fas fa-chevron-right"></i> السابق';
-            prevButton.disabled = currentPage === 1;
-            prevButton.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTable();
-                    setupPagination();
-                }
-            };
-            pagination.appendChild(prevButton);
-            
-            // أزرار الأرقام
-            const maxVisiblePages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            
-            if (endPage - startPage + 1 < maxVisiblePages) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
-            
-            if (startPage > 1) {
-                const firstButton = document.createElement('button');
-                firstButton.textContent = '1';
-                firstButton.onclick = () => {
-                    currentPage = 1;
-                    renderTable();
-                    setupPagination();
-                };
-                pagination.appendChild(firstButton);
-                
-                if (startPage > 2) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.padding = '8px 12px';
-                    pagination.appendChild(ellipsis);
-                }
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.textContent = i;
-                pageButton.className = currentPage === i ? 'active' : '';
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    renderTable();
-                    setupPagination();
-                };
-                pagination.appendChild(pageButton);
-            }
-            
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    const ellipsis = document.createElement('span');
-                    ellipsis.textContent = '...';
-                    ellipsis.style.padding = '8px 12px';
-                    pagination.appendChild(ellipsis);
-                }
-                
-                const lastButton = document.createElement('button');
-                lastButton.textContent = totalPages;
-                lastButton.onclick = () => {
-                    currentPage = totalPages;
-                    renderTable();
-                    setupPagination();
-                };
-                pagination.appendChild(lastButton);
-            }
-            
-            // زر التالي
-            const nextButton = document.createElement('button');
-            nextButton.innerHTML = 'التالي <i class="fas fa-chevron-left"></i>';
-            nextButton.disabled = currentPage === totalPages;
-            nextButton.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderTable();
-                    setupPagination();
-                }
-            };
-            pagination.appendChild(nextButton);
+        pageData.forEach(item => {
+            const statusText = getStatusText(item.status);
+            const statusClass = getStatusClass(item.status);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${item.id}</strong></td>
+                <td>
+                    <div><strong>${item.projectName}</strong></div>
+                    <small style="color: #777; font-size: 12px;">${item.location}</small>
+                </td>
+                <td>${item.businessType}</td>
+                <td>
+                    <div>${item.userName}</div>
+                    <small style="color: #777; font-size: 12px;">${item.userEmail}</small>
+                </td>
+                <td>${formatDate(item.date)}</td>
+                <td>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <div style="font-size: 12px; color: #777; margin-top: 5px;">${item.analysisTime}</div>
+                </td>
+                <td><strong>${item.revenue} د.أ</strong></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn btn-view" onclick="viewDetails(${item.id})" title="عرض التفاصيل">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn btn-download" onclick="downloadReport(${item.id})" title="تحميل التقرير">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteRequest(${item.id})" title="حذف الطلب">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>`;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // إعداد الترقيم
+    function setupPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+        if (totalPages <= 1) return;
+
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = '<i class="fas fa-chevron-right"></i> السابق';
+        prevButton.disabled = currentPage === 1;
+        prevButton.onclick = () => { currentPage--; renderTable(); setupPagination(); };
+        pagination.appendChild(prevButton);
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
 
-        // وظائف المساعدة
-        function getStatusText(status) {
-            switch(status) {
-                case 'pending': return 'في الانتظار';
-                case 'processing': return 'جاري التحليل';
-                case 'completed': return 'مكتمل';
-                case 'error': return 'خطأ';
-                default: return 'غير معروف';
+        if (startPage > 1) {
+            const firstButton = document.createElement('button');
+            firstButton.textContent = '1';
+            firstButton.onclick = () => { currentPage = 1; renderTable(); setupPagination(); };
+            pagination.appendChild(firstButton);
+            if (startPage > 2) {
+                const ellipsis = document.createElement('span'); ellipsis.textContent = '...'; ellipsis.style.padding = '8px 12px'; pagination.appendChild(ellipsis);
             }
         }
 
-        function getStatusClass(status) {
-            switch(status) {
-                case 'pending': return 'status-pending';
-                case 'processing': return 'status-processing';
-                case 'completed': return 'status-completed';
-                case 'error': return 'status-error';
-                default: return '';
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.className = currentPage === i ? 'active' : '';
+            pageButton.onclick = () => { currentPage = i; renderTable(); setupPagination(); };
+            pagination.appendChild(pageButton);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const ellipsis = document.createElement('span'); ellipsis.textContent = '...'; ellipsis.style.padding = '8px 12px'; pagination.appendChild(ellipsis);
             }
+            const lastButton = document.createElement('button');
+            lastButton.textContent = totalPages;
+            lastButton.onclick = () => { currentPage = totalPages; renderTable(); setupPagination(); };
+            pagination.appendChild(lastButton);
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('ar-SA', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = 'التالي <i class="fas fa-chevron-left"></i>';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.onclick = () => { currentPage++; renderTable(); setupPagination(); };
+        pagination.appendChild(nextButton);
+    }
 
-        // وظائف الإجراءات
-        function viewDetails(id) {
-            const item = sampleData.find(d => d.id === id);
-            if (item) {
-                alert(`تفاصيل الطلب #${id}:
-                
+    // وظائف المساعدة
+    function getStatusText(status) {
+        switch(status) {
+            case 'pending': return 'في الانتظار';
+            case 'processing': return 'جاري التحليل';
+            case 'completed': return 'مكتمل';
+            case 'error': return 'خطأ';
+            default: return 'غير معروف';
+        }
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'pending': return 'status-pending';
+            case 'processing': return 'status-processing';
+            case 'completed': return 'status-completed';
+            case 'error': return 'status-error';
+            default: return '';
+        }
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // وظائف الإجراءات
+    function viewDetails(id) {
+        const item = sampleData.find(d => d.id === id);
+        if (item) {
+            alert(`تفاصيل الطلب #${id}:
+            
 اسم المشروع: ${item.projectName}
 نوع المشروع: ${item.businessType}
 المستخدم: ${item.userName} (${item.userEmail})
@@ -903,23 +860,27 @@
 - الموقع: ${item.location}
 - عمر المشروع: ${item.age}
 - عدد الزبائن الشهري: ${item.customers}
-- عدد الموظفين: ${item.employees}
-                `);
-            }
+- عدد الموظفين: ${item.employees}`);
         }
+    }
 
-        function downloadReport(id) {
-            alert(`سيتم تحميل تقرير التحليل للطلب #${id}`);
-            // هنا يمكنك إضافة كود لتحميل التقرير الفعلي
-        }
+    function downloadReport(id) {
+        alert(`سيتم تحميل تقرير التحليل للطلب #${id}`);
+    }
 
-        function deleteRequest(id) {
-            if (confirm(`هل أنت متأكد من حذف الطلب #${id}؟`)) {
-                alert(`تم حذف الطلب #${id}`);
-                // هنا يمكنك إضافة كود لحذف الطلب من قاعدة البيانات
-            }
+    function deleteRequest(id) {
+        if (confirm(`هل أنت متأكد من حذف الطلب #${id}؟`)) {
+            sampleData = sampleData.filter(item => item.id !== id);
+            saveRequestsToLocalStorage(sampleData);
+            filteredData = [...sampleData];
+            renderTable();
+            setupPagination();
+            updateStats();
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
+
 
