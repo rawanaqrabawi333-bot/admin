@@ -575,159 +575,33 @@
 	
 
     <script>
-        // بيانات تجريبية
-        const sampleData = [
-            {
-                id: 1,
-                projectName: "مقهى روز",
-                businessType: "مقهى",
-                userName: "أحمد محمد",
-                userEmail: "ahmed@example.com",
-                date: "2023-10-15",
-                status: "completed",
-                revenue: "5,000",
-                analysisTime: "45 ثانية",
-                location: "عمان",
-                age: "12 شهر",
-                customers: "300",
-                employees: "4"
-            },
-            {
-                id: 2,
-                projectName: "مطعم الشيف",
-                businessType: "مطعم/فود تراك",
-                userName: "سارة خالد",
-                userEmail: "sara@example.com",
-                date: "2023-10-14",
-                status: "processing",
-                revenue: "12,000",
-                analysisTime: "جاري التحليل",
-                location: "الرياض",
-                age: "6 أشهر",
-                customers: "500",
-                employees: "8"
-            },
-            {
-                id: 3,
-                projectName: "متجر التقنية",
-                businessType: "متجر إلكتروني",
-                userName: "خالد علي",
-                userEmail: "khaled@example.com",
-                date: "2023-10-13",
-                status: "pending",
-                revenue: "8,000",
-                analysisTime: "في الانتظار",
-                location: "أونلاين",
-                age: "24 شهر",
-                customers: "1,000",
-                employees: "3"
-            },
-            {
-                id: 4,
-                projectName: "صالون الجمال",
-                businessType: "صالون تجميل",
-                userName: "نورة أحمد",
-                userEmail: "nora@example.com",
-                date: "2023-10-12",
-                status: "error",
-                revenue: "3,000",
-                analysisTime: "فشل التحليل",
-                location: "جدة",
-                age: "3 أشهر",
-                customers: "150",
-                employees: "2"
-            },
-            {
-                id: 5,
-                projectName: "مكتبة المعرفة",
-                businessType: "تدريب وتعليم",
-                userName: "محمد سالم",
-                userEmail: "mohammed@example.com",
-                date: "2023-10-11",
-                status: "completed",
-                revenue: "7,000",
-                analysisTime: "38 ثانية",
-                location: "دبي",
-                age: "18 شهر",
-                customers: "400",
-                employees: "5"
-            },
-            {
-                id: 6,
-                projectName: "متجر الأزياء",
-                businessType: "ملابس",
-                userName: "فاطمة عبدالله",
-                userEmail: "fatima@example.com",
-                date: "2023-10-10",
-                status: "completed",
-                revenue: "9,500",
-                analysisTime: "52 ثانية",
-                location: "الكويت",
-                age: "9 أشهر",
-                customers: "600",
-                employees: "6"
-            },
-            {
-                id: 7,
-                projectName: "شركة البرمجيات",
-                businessType: "شركة تقنية",
-                userName: "عمر راشد",
-                userEmail: "omar@example.com",
-                date: "2023-10-09",
-                status: "processing",
-                revenue: "15,000",
-                analysisTime: "جاري التحليل",
-                location: "الدمام",
-                age: "36 شهر",
-                customers: "200",
-                employees: "12"
-            },
-            {
-                id: 8,
-                projectName: "مخبز الحلويات",
-                businessType: "حلويات",
-                userName: "لينا كمال",
-                userEmail: "lina@example.com",
-                date: "2023-10-08",
-                status: "pending",
-                revenue: "4,500",
-                analysisTime: "في الانتظار",
-                location: "الرياض",
-                age: "4 أشهر",
-                customers: "250",
-                employees: "3"
-            },
-            {
-                id: 9,
-                projectName: "ورشة السيارات",
-                businessType: "خدمات",
-                userName: "راشد ناصر",
-                userEmail: "rashed@example.com",
-                date: "2023-10-07",
-                status: "completed",
-                revenue: "6,500",
-                analysisTime: "41 ثانية",
-                location: "أبوظبي",
-                age: "15 شهر",
-                customers: "350",
-                employees: "7"
-            },
-            {
-                id: 10,
-                projectName: "مزرعة الدواجن",
-                businessType: "تصنيع",
-                userName: "علي حسن",
-                userEmail: "ali@example.com",
-                date: "2023-10-06",
-                status: "completed",
-                revenue: "18,000",
-                analysisTime: "1 دقيقة 10 ثواني",
-                location: "القاهرة",
-                age: "48 شهر",
-                customers: "800",
-                employees: "15"
-            }
-        ];
+        
+		function getRequestsFromLocalStorage() {
+		    // أسماء الحقول كما هي في الفورم (name="")
+		    const request = {
+		        id: 1,
+		        projectName: localStorage.getItem("projectName") || "—",
+		        businessType: localStorage.getItem("businessType") || "—",
+		        userName: localStorage.getItem("ownerName") || "—",
+		        userEmail: localStorage.getItem("email") || "—",
+		        date: new Date().toISOString().split("T")[0],
+		        status: "pending",
+		        revenue: localStorage.getItem("monthlyRevenue") || "0",
+		        analysisTime: "في الانتظار",
+		        location: localStorage.getItem("location") || "—",
+		        age: localStorage.getItem("businessAge") || "—",
+		        customers: localStorage.getItem("customers") || "—",
+		        employees: localStorage.getItem("employees") || "—"
+		    };
+		
+		    // إذا ما في بيانات محفوظة لا تعرض شيء
+		    if (!localStorage.length) return [];
+		
+		    return [request];
+		}
+		
+		const sampleData = getRequestsFromLocalStorage();
+
 
         // متغيرات عامة
         let currentPage = 1;
@@ -1048,3 +922,4 @@
     </script>
 </body>
 </html>
+
